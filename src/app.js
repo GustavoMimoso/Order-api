@@ -1,10 +1,11 @@
 // src/app.js
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
 
 // Importa as rotas
 const OrderRoutes = require('./routes/orderRoutes');
-const AuthRoutes = require('./routes/authRoutes');
 
 // Cria a aplicação Express
 const app = express();
@@ -17,30 +18,33 @@ app.use((req, res, next) => {
     next();
 });
 
+// ===== SWAGGER =====
+// Serve a UI do Swagger em /docs
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Rota para ver o JSON do Swagger
+app.get('/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
 // ===== ROTAS =====
 
 // Rota raiz
 app.get('/', (req, res) => {
     res.json({
-        message: '✅ Order API com JWT está funcionando!',
+        message: '✅ Order API está funcionando!',
         version: '1.0.0',
-        autenticacao: {
-            registrar: 'POST /auth/register',
-            login: 'POST /auth/login',
-            perfil: 'GET /auth/me (com token)'
-        },
-        pedidos: {
-            criarPedido: 'POST /order (requer autenticação)',
-            buscarPedido: 'GET /order/:orderId (requer autenticação)',
-            listarPedidos: 'GET /order/list (requer autenticação)',
-            atualizarPedido: 'PUT /order/:orderId (requer autenticação)',
-            deletarPedido: 'DELETE /order/:orderId (requer autenticação)'
+        documentacao: 'http://localhost:3000/docs',
+        endpoints: {
+            criarPedido: 'POST /order',
+            buscarPedido: 'GET /order/:orderId',
+            listarPedidos: 'GET /order/list',
+            atualizarPedido: 'PUT /order/:orderId',
+            deletarPedido: 'DELETE /order/:orderId'
         }
     });
 });
-
-// Usa as rotas de autenticação
-app.use('/', AuthRoutes);
 
 // Usa as rotas de pedidos
 app.use('/', OrderRoutes);
@@ -70,8 +74,7 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════╗
 ║  🚀 Servidor iniciado com sucesso!      ║
 ║  📍 http://localhost:${PORT}              ║
-║  🔐 Com autenticação JWT ativada!       ║
-║  📚 Documentação: http://localhost:${PORT} ║
+║  📚 Swagger: http://localhost:${PORT}/docs ║
 ╚══════════════════════════════════════════╝
     `);
 });
