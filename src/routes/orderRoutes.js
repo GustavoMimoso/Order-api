@@ -1,21 +1,28 @@
 // src/routes/orderRoutes.js
 const express = require('express');
 const OrderController = require('../controllers/orderController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
 /**
- * IMPORTANTE: Rotas mais específicas PRIMEIRO!
- * /order/list deve vir ANTES de /order/:orderId
+ * Todas as rotas de pedidos agora requerem autenticação
+ * Adicione o token no header: Authorization: Bearer seu_token_aqui
  */
 
-// ✅ Esta DEVE vir ANTES da com parâmetro
-router.get('/order/list', OrderController.getAllOrders);
+// POST - Criar novo pedido (PROTEGIDO)
+router.post('/order', authMiddleware, OrderController.createOrder);
 
-// Depois as genéricas
-router.post('/order', OrderController.createOrder);
-router.get('/order/:orderId', OrderController.getOrderById);
-router.put('/order/:orderId', OrderController.updateOrder);
-router.delete('/order/:orderId', OrderController.deleteOrder);
+// GET - Buscar pedido por ID (PROTEGIDO)
+router.get('/order/:orderId', authMiddleware, OrderController.getOrderById);
+
+// GET - Listar todos os pedidos (PROTEGIDO)
+router.get('/order/list', authMiddleware, OrderController.getAllOrders);
+
+// PUT - Atualizar pedido (PROTEGIDO)
+router.put('/order/:orderId', authMiddleware, OrderController.updateOrder);
+
+// DELETE - Deletar pedido (PROTEGIDO)
+router.delete('/order/:orderId', authMiddleware, OrderController.deleteOrder);
 
 module.exports = router;

@@ -4,15 +4,14 @@ require('dotenv').config();
 
 // Importa as rotas
 const OrderRoutes = require('./routes/orderRoutes');
+const AuthRoutes = require('./routes/authRoutes');
 
 // Cria a aplicação Express
 const app = express();
 
 // ===== MIDDLEWARES =====
-// Middleware para aceitar JSON no corpo das requisições
 app.use(express.json());
 
-// Middleware para logs de requisições
 app.use((req, res, next) => {
     console.log(`\n📤 ${req.method} ${req.path}`);
     next();
@@ -20,26 +19,33 @@ app.use((req, res, next) => {
 
 // ===== ROTAS =====
 
-// Rota raiz (para verificar se a API está funcionando)
+// Rota raiz
 app.get('/', (req, res) => {
     res.json({
-        message: '✅ Order API está funcionando!',
+        message: '✅ Order API com JWT está funcionando!',
         version: '1.0.0',
-        endpoints: {
-            criarPedido: 'POST /order',
-            buscarPedido: 'GET /order/:orderId',
-            listarPedidos: 'GET /order/list',
-            atualizarPedido: 'PUT /order/:orderId',
-            deletarPedido: 'DELETE /order/:orderId'
+        autenticacao: {
+            registrar: 'POST /auth/register',
+            login: 'POST /auth/login',
+            perfil: 'GET /auth/me (com token)'
+        },
+        pedidos: {
+            criarPedido: 'POST /order (requer autenticação)',
+            buscarPedido: 'GET /order/:orderId (requer autenticação)',
+            listarPedidos: 'GET /order/list (requer autenticação)',
+            atualizarPedido: 'PUT /order/:orderId (requer autenticação)',
+            deletarPedido: 'DELETE /order/:orderId (requer autenticação)'
         }
     });
 });
+
+// Usa as rotas de autenticação
+app.use('/', AuthRoutes);
 
 // Usa as rotas de pedidos
 app.use('/', OrderRoutes);
 
 // ===== TRATAMENTO DE ERROS =====
-// Rota 404 (não encontrada)
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -47,7 +53,6 @@ app.use((req, res) => {
     });
 });
 
-// Middleware de erro global
 app.use((err, req, res, next) => {
     console.error('❌ Erro não tratado:', err);
     res.status(500).json({
@@ -65,6 +70,7 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════╗
 ║  🚀 Servidor iniciado com sucesso!      ║
 ║  📍 http://localhost:${PORT}              ║
+║  🔐 Com autenticação JWT ativada!       ║
 ║  📚 Documentação: http://localhost:${PORT} ║
 ╚══════════════════════════════════════════╝
     `);
